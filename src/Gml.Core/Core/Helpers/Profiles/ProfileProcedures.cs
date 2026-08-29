@@ -361,7 +361,7 @@ public partial class ProfileProcedures : IProfileProcedures
         var gameArguments = new List<string>();
 
         if (!string.IsNullOrEmpty(profile.JvmArguments))
-            jvmArgs.Add(profile.JvmArguments);
+            jvmArgs.AddRange(profile.JvmArguments.Split(' ', StringSplitOptions.RemoveEmptyEntries));
 
         var files =
             await profile.GetProfileFiles(startupOptions.OsName, startupOptions.OsArch);
