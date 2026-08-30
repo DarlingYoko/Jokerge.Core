@@ -333,9 +333,20 @@ public class FileStorageProcedures : IFileStorageProcedures
 
         if (!fileInfo.Directory!.Exists) fileInfo.Directory.Create();
 
-        using (var fileStream = File.Create(filePath))
+        var tempFilePath = $"{filePath}.{Guid.NewGuid():N}.tmp";
+
+        try
         {
-            await input.CopyToAsync(fileStream);
+            using (var fileStream = File.Create(tempFilePath))
+            {
+                await input.CopyToAsync(fileStream);
+            }
+
+            File.Move(tempFilePath, filePath, true);
+        }
+        finally
+        {
+            if (File.Exists(tempFilePath)) File.Delete(tempFilePath);
         }
     }
 
