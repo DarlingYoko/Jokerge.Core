@@ -85,6 +85,23 @@ public class TextureProvider(string textureServiceEndpoint, IBugTrackerProcedure
         return _httpClientLoader.GetStreamAsync($"/skin/{userName}/head/128");
     }
 
+    public async Task<(string? SkinUrl, bool HasSkin, string? CloakUrl, bool HasCloak)> GetUserTexture(string userName)
+    {
+        try
+        {
+            var json = await _httpClientLoader.GetStringAsync($"/{userName}");
+            var model = JsonConvert.DeserializeObject<TextureReadDto>(json);
+
+            return (model?.SkinUrl, model?.HasSkin ?? false, model?.ClockUrl, model?.HasCloak ?? false);
+        }
+        catch (Exception exception)
+        {
+            bugTracker.CaptureException(exception);
+            Debug.WriteLine(exception);
+            return (null, false, null, false);
+        }
+    }
+
     private async Task<TextureReadDto?> UpdateTexture(IUser user, string skinUrl, string requestUri, string prefix)
     {
         var skinResponseMessage = await _httpClintSkinChecker.GetStreamAsync(skinUrl);

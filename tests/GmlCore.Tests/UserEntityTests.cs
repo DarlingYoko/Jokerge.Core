@@ -422,5 +422,10 @@ public class UserEntityTests
         {
             throw new NotImplementedException();
         }
+
+        public Task<(string? SkinUrl, bool HasSkin, string? CloakUrl, bool HasCloak)> GetUserTexture(string userName)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
