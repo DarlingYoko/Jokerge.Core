@@ -491,6 +491,13 @@ public partial class ProfileProcedures : IProfileProcedures
     public async Task PackProfile(IGameProfile profile)
     {
         await profile.SetState(ProfileState.Packing);
+
+        // Packing can fail partway through (I/O error, S3 upload failure, etc.). Without this
+        // catch, the profile's State stays stuck at Packing forever on failure, which permanently
+        // blocks every future rebuild attempt with a false "already in progress" rejection
+        // (see ProfileHub.Build's ProfileState.Packing guard).
+        try
+        {
         var fileInfos = await profile.GetAllProfileFiles(true);
 
         var batchSize = 50;
@@ -647,7 +654,14 @@ public partial class ProfileProcedures : IProfileProcedures
         //     processed++;
         // }
 
-        await profile.SetState(ProfileState.Ready);
+            await profile.SetState(ProfileState.Ready);
+        }
+        catch (Exception exception)
+        {
+            _bugTracker.CaptureException(exception);
+            await profile.SetState(ProfileState.Error);
+            throw;
+        }
     }
 
     public Task AddFileToWhiteList(IGameProfile profile, IFileInfo file)
