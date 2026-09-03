@@ -116,13 +116,16 @@ public class UserProcedures : IUserProcedures
         if (claims?.Value != user.Name)
             return false;
 
+        if (!(user.AccessToken?.Equals(accessToken) ?? false))
+            return false;
+
         user.ServerUuid = serverUuid;
         user.ServerExpiredDate = DateTime.Now.AddMinutes(1);
         user.ServerJoinHistory.Add(new ServerJoinHistory(serverUuid, DateTime.Now));
 
         await UpdateUser(user);
 
-        return user.AccessToken?.Equals(accessToken) ?? false;
+        return true;
     }
 
     public async Task<bool> CanJoinToServer(IUser user, string serverId)

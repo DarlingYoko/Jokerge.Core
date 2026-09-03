@@ -184,6 +184,21 @@ public class UserProceduresTests
     }
 
     [Test]
+    public async Task ValidateUser_InvalidCredentials_DoesNotGrantServerJoin()
+    {
+        // Arrange
+        var user = await _gmlManager.Users.GetUserByUuid(TestUserUuid) ?? throw new Exception();
+
+        // Act
+        var validated = await _gmlManager.Users.ValidateUser(user.Uuid, TestServerUuid, "invalid-token");
+        var canJoin = await _gmlManager.Users.CanJoinToServer(user, TestServerUuid);
+
+        // Assert
+        Assert.That(validated, Is.False);
+        Assert.That(canJoin, Is.False);
+    }
+
+    [Test]
     public async Task CanJoinToServer_ValidUser_ReturnsTrue()
     {
         // Arrange
