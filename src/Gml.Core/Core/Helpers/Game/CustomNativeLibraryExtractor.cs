@@ -66,6 +66,8 @@ internal static class SharpZipWrapper
         using var fs = File.OpenRead(zipPath);
         using var s = new ZipInputStream(fs);
 
+        var extractRoot = IOUtil.NormalizePath(extractTo);
+
         ZipEntry e;
         while ((e = s.GetNextEntry()) != null)
         {
@@ -75,6 +77,14 @@ internal static class SharpZipWrapper
                 continue;
 
             var fullPath = Path.Combine(extractTo, e.Name);
+
+            // Zip Slip guard: reject any entry whose resolved path (after ../ traversal)
+            // would land outside extractRoot.
+            if (IOUtil.NormalizePath(fullPath) is var normalizedFullPath &&
+                normalizedFullPath != extractRoot &&
+                !normalizedFullPath.StartsWith(extractRoot + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+                continue;
+
             if (e.IsFile)
             {
                 IOUtil.CreateParentDirectory(fullPath);

@@ -108,18 +108,18 @@ public class SystemProcedures(IGmlSettings gmlSettings) : ISystemProcedures
 
     public void SetFileExecutable(string filePath)
     {
-        var process = new Process
+        var startInfo = new ProcessStartInfo
         {
-            StartInfo = new ProcessStartInfo
-            {
-                FileName = "chmod",
-                Arguments = $"+x {filePath}",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            }
+            FileName = "chmod",
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
         };
+        startInfo.ArgumentList.Add("+x");
+        startInfo.ArgumentList.Add(filePath);
+
+        var process = new Process { StartInfo = startInfo };
         process.Start();
         process.WaitForExit();
         if (process.ExitCode != 0)

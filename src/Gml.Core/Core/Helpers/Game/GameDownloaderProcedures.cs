@@ -112,6 +112,29 @@ public class GameDownloaderProcedures : IGameDownloaderProcedures
         return localFilesInfo;
     }
 
+    /// <summary>
+    /// Resolves fileName to a path inside modsDirectory, stripping any directory
+    /// components and rejecting anything that would still escape modsDirectory (e.g. via
+    /// a crafted alternate-stream or drive-qualified name on Windows). Throws
+    /// ArgumentException on an invalid/escaping fileName.
+    /// </summary>
+    private static string ResolveModFilePath(string modsDirectory, string fileName)
+    {
+        var safeName = Path.GetFileName(fileName);
+
+        if (string.IsNullOrWhiteSpace(safeName))
+            throw new ArgumentException("File name cannot be null or empty.", nameof(fileName));
+
+        var fullModsDirectory = Path.GetFullPath(modsDirectory);
+        var filePath = Path.GetFullPath(Path.Combine(fullModsDirectory, safeName));
+
+        if (!filePath.StartsWith(
+                fullModsDirectory + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+            throw new ArgumentException("File name resolves outside the mods directory.", nameof(fileName));
+
+        return filePath;
+    }
+
     public async Task<FileInfo> AddMod(string fileName, Stream streamData)
     {
         if (string.IsNullOrWhiteSpace(fileName))
@@ -124,7 +147,7 @@ public class GameDownloaderProcedures : IGameDownloaderProcedures
 
         if (!Directory.Exists(modsDirectory)) Directory.CreateDirectory(modsDirectory);
 
-        var filePath = Path.Combine(modsDirectory, fileName);
+        var filePath = ResolveModFilePath(modsDirectory, fileName);
 
         await using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
         await streamData.CopyToAsync(fileStream);
@@ -138,7 +161,7 @@ public class GameDownloaderProcedures : IGameDownloaderProcedures
         {
             var modsDirectory = GetModsDirectory();
 
-            var filePath = Path.Combine(modsDirectory, fileName);
+            var filePath = ResolveModFilePath(modsDirectory, fileName);
 
             if (!File.Exists(filePath))
                 return Task.FromResult(true);
@@ -151,8 +174,6 @@ public class GameDownloaderProcedures : IGameDownloaderProcedures
             _bugTracker.CaptureException(exception);
             return Task.FromResult(false);
         }
-
-        return Task.FromResult(false);
     }
 
     public async Task<IFileInfo[]> GetMods()
