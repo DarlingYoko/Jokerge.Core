@@ -34,10 +34,14 @@ public class SqliteStorageService : IStorageService
         _databasePath = Path.Combine(settings.InstallationDirectory, DatabaseFileName);
         _database = new SQLiteAsyncConnection(_databasePath);
 
+        // No TypeNameHandling: BugInfo's only polymorphic members (IMemoryInfo,
+        // IEnumerable<IExceptionReport>, and IStackTrace nested inside that) each have an
+        // explicit converter below, and the root type is always the concrete BugInfo/List<BugInfo>
+        // passed to DeserializeObject<T>. Enabling TypeNameHandling here isn't needed for any
+        // of that, and would let a crafted $type in stored bug-report JSON drive Newtonsoft to
+        // instantiate an arbitrary type (insecure-deserialization gadget risk).
         _bugsConverter = new JsonSerializerSettings
         {
-            TypeNameHandling = TypeNameHandling.Objects,
-
             Converters = new List<JsonConverter>
                 { new MemoryInfoConverter(), new ExceptionReportConverter(), new StackTraceConverter() }
         };
@@ -183,13 +187,7 @@ public class SqliteStorageService : IStorageService
             .Table<BugItem>()
             .ToListAsync();
 
-        var listBugs = bugs.Select(x => JsonConvert.DeserializeObject<T>(x.Value,
-            new JsonSerializerSettings
-            {
-                TypeNameHandling = TypeNameHandling.Objects,
-                Converters = new List<JsonConverter>
-                    { new MemoryInfoConverter(), new ExceptionReportConverter(), new StackTraceConverter() }
-            }));
+        var listBugs = bugs.Select(x => JsonConvert.DeserializeObject<T>(x.Value, _bugsConverter));
 
         return listBugs!;
     }

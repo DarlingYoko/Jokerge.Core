@@ -13,9 +13,12 @@ public class ExceptionReportConverter : JsonConverter<IExceptionReport>
         bool hasExistingValue, JsonSerializer serializer)
     {
         var jsonObject = JObject.Load(reader);
+        // Every polymorphic member (IStackTrace) has its own explicit converter below —
+        // TypeNameHandling isn't needed to resolve concrete types, and enabling it here
+        // would let a crafted $type in stored bug-report JSON drive Newtonsoft to
+        // instantiate an arbitrary type (insecure-deserialization gadget risk).
         var exceptionReport = jsonObject.ToObject<ExceptionReport>(new JsonSerializer
         {
-            TypeNameHandling = TypeNameHandling.All,
             Converters = { new StackTraceConverter() }
         });
         return exceptionReport ?? new ExceptionReport();
