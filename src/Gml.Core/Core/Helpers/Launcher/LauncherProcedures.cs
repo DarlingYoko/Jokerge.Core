@@ -5,7 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Gml.Common;
 using Gml.Core.Constants;
 using Gml.Core.Services.GitHub;
 using GmlCore.Interfaces.Enums;
@@ -86,6 +88,9 @@ public class LauncherProcedures : ILauncherProcedures
 
             if (executeFile != null)
             {
+                using (var sha256 = SHA256.Create())
+                    localVersion!.Sha256 = SystemHelper.CalculateFileHash(executeFile.FullName, sha256);
+
                 await using var stream = File.OpenRead(executeFile.FullName);
                 localVersion!.Guid = await _files.LoadFile(
                     stream,

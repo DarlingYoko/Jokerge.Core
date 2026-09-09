@@ -8,6 +8,7 @@ public struct LauncherVersion : IVersionFile
     public string Title { get; set; }
     public string Description { get; set; }
     public string Guid { get; set; }
+    public string? Sha256 { get; set; }
 
     public object Clone()
     {
@@ -16,7 +17,8 @@ public struct LauncherVersion : IVersionFile
             Version = Version,
             Title = Title,
             Description = Description,
-            Guid = Guid
+            Guid = Guid,
+            Sha256 = Sha256
         };
     }
 }
