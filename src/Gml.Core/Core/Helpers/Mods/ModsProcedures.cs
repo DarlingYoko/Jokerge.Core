@@ -47,10 +47,14 @@ public class ModsProcedures : IModsProcedures
         return profile.GetModsAsync();
     }
 
-    // TODO: выбор откуда брать данные CurseForge или Modrinth
-    public Task<IEnumerable<IMod>> GetModsAsync(IGameProfile profile, string name)
+    // No CurseForge/Modrinth source selection needed here: this filters the profile's already
+    // locally-installed mods (each one already carries its own origin via IMod.Type), unlike
+    // FindModsAsync below, which searches an external source and does need the caller to pick one.
+    public async Task<IEnumerable<IMod>> GetModsAsync(IGameProfile profile, string name)
     {
-        throw new NotImplementedException();
+        var mods = await profile.GetModsAsync().ConfigureAwait(false);
+
+        return mods.Where(mod => mod.Name.Contains(name, StringComparison.OrdinalIgnoreCase));
     }
 
     public async Task<IExternalMod?> GetInfo(string identify, ModType modType)
@@ -85,7 +89,6 @@ public class ModsProcedures : IModsProcedures
         }
     }
 
-    // TODO: нужно сделать реализацию поиска модов по выбору где искать CurseForge или Modrinth
     public Task<IReadOnlyCollection<IExternalMod>> FindModsAsync(GameLoader profileLoader,
         string gameVersion,
         ModType modLoaderType,
@@ -105,7 +108,6 @@ public class ModsProcedures : IModsProcedures
         }
     }
 
-    // TODO: нужно версию так же выбирать откуда брать данные CurseForge или Modrinth
     public Task SetModDetails(string modName, string title, string description)
     {
         _modsInfo.AddOrUpdate(modName,
