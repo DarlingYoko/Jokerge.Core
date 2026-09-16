@@ -8,6 +8,8 @@ public interface ITextureProvider
 {
     Task<string> SetSkin(IUser user, string skinUrl);
     Task<string> SetCloak(IUser user, string skinUrl);
+    Task DeleteSkin(string userName);
+    Task DeleteCloak(string userName);
     Task<Stream> GetSkinStream(string? textureUrl);
     Task<Stream> GetCloakStream(string? userTextureSkinUrl);
     Task<Stream> GetHeadByNameStream(string? userName);

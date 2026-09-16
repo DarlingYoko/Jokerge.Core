@@ -70,6 +70,32 @@ public class TextureProvider(string textureServiceEndpoint, IBugTrackerProcedure
         }
     }
 
+    public Task DeleteSkin(string userName)
+    {
+        return DeleteTexture($"skin/{userName}");
+    }
+
+    public Task DeleteCloak(string userName)
+    {
+        return DeleteTexture($"cloak/{userName}");
+    }
+
+    private async Task DeleteTexture(string requestUri)
+    {
+        try
+        {
+            var response = await _httpClientLoader.DeleteAsync(requestUri);
+
+            if (!response.IsSuccessStatusCode && response.StatusCode != System.Net.HttpStatusCode.NotFound)
+                response.EnsureSuccessStatusCode();
+        }
+        catch (Exception exception)
+        {
+            bugTracker.CaptureException(exception);
+            Debug.WriteLine(exception);
+        }
+    }
+
     public Task<Stream> GetSkinStream(string? textureUrl)
     {
         return _httpClintSkinChecker.GetStreamAsync(textureUrl);

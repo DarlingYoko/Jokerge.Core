@@ -408,6 +408,16 @@ public class UserEntityTests
             return Task.FromResult(NextCloakUrl);
         }
 
+        public Task DeleteSkin(string userName)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteCloak(string userName)
+        {
+            return Task.CompletedTask;
+        }
+
         public Task<Stream> GetSkinStream(string? textureUrl)
         {
             throw new NotImplementedException();

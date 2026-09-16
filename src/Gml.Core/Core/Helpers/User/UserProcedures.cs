@@ -184,9 +184,14 @@ public class UserProcedures : IUserProcedures
         return _storage.SetUserAsync(user.Name, user.Uuid, (AuthUser)user);
     }
 
-    public Task RemoveUser(IUser user)
+    public async Task RemoveUser(IUser user)
     {
-        return _storage.RemoveUserByUuidAsync(user.Uuid);
+        var textureProvider = _gmlManager.Integrations.TextureProvider;
+
+        await textureProvider.DeleteSkin(user.Name);
+        await textureProvider.DeleteCloak(user.Name);
+
+        await _storage.RemoveUserByUuidAsync(user.Uuid);
     }
 
     public Task StartSession(IUser user)
