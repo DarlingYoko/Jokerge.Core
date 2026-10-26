@@ -694,7 +694,9 @@ public partial class ProfileProcedures : IProfileProcedures
         string gameArguments,
         int priority,
         int recommendedRam,
-        bool needUpdateImages)
+        bool needUpdateImages,
+        string? discordName = null,
+        string? discordImage = null)
     {
         var directory =
             new DirectoryInfo(Path.Combine(_launcherInfo.InstallationDirectory, "clients", profile.Name));
@@ -728,7 +730,9 @@ public partial class ProfileProcedures : IProfileProcedures
             jvmArguments,
             gameArguments,
             priority,
-            recommendedRam);
+            recommendedRam,
+            discordName,
+            discordImage);
     }
 
     public async Task<string[]> InstallAuthLib(IGameProfile profile)
@@ -1080,10 +1084,14 @@ public partial class ProfileProcedures : IProfileProcedures
         string jvmArguments,
         string gameArguments,
         int priority,
-        int recommendedRam)
+        int recommendedRam,
+        string? discordName,
+        string? discordImage)
     {
         profile.Name = newProfileName;
         profile.DisplayName = displayName;
+        profile.DiscordName = string.IsNullOrWhiteSpace(discordName) ? null : discordName.Trim();
+        profile.DiscordImage = string.IsNullOrWhiteSpace(discordImage) ? null : discordImage.Trim();
         profile.IconBase64 = newIcon;
         profile.BackgroundImageKey = backgroundImageKey;
         profile.Description = newDescription;

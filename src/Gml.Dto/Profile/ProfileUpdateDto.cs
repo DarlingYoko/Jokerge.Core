@@ -5,6 +5,8 @@ public class ProfileUpdateDto
     public string OriginalName { get; set; } = null!;
     public string Name { get; set; } = null!;
     public string DisplayName { get; set; } = null!;
+    public string? DiscordName { get; set; }
+    public string? DiscordImage { get; set; }
     public bool IsEnabled { get; set; }
     public int Priority { get; set; }
     public string Description { get; set; } = null!;

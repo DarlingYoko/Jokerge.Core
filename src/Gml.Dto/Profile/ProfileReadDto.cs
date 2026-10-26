@@ -9,6 +9,8 @@ public class ProfileReadDto
 {
     public string Name { get; set; }
     public string DisplayName { get; set; }
+    public string? DiscordName { get; set; }
+    public string? DiscordImage { get; set; }
     public DateTimeOffset CreateDate { get; set; }
     public string Description { get; set; }
     public string GameVersion { get; set; }

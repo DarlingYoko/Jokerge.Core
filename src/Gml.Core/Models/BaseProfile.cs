@@ -46,6 +46,8 @@ public abstract class BaseProfile : IGameProfile
 
     public string Name { get; set; }
     public string DisplayName { get; set; }
+    public string? DiscordName { get; set; }
+    public string? DiscordImage { get; set; }
     public bool CanEdit => State != ProfileState.Loading && State != ProfileState.Packing;
     public int Priority { get; set; }
     public int RecommendedRam { get; set; }

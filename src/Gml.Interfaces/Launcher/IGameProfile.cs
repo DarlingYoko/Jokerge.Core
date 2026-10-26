@@ -135,6 +135,17 @@ public interface IGameProfile : IDisposable
     string DisplayName { get; set; }
 
     /// <summary>
+    ///     Profile name shown in Discord Rich Presence. Falls back to <see cref="DisplayName"/> when empty.
+    /// </summary>
+    string? DiscordName { get; set; }
+
+    /// <summary>
+    ///     Discord Rich Presence large image (asset key or https URL) shown while playing this profile.
+    ///     Falls back to the Discord integration image when empty.
+    /// </summary>
+    string? DiscordImage { get; set; }
+
+    /// <summary>
     ///     Indicates whether the profile can be modified.
     /// </summary>
     bool CanEdit { get; }
