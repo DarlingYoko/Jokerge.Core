@@ -1,17 +1,18 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Gml.Core.Helpers.Servers;
 using Gml.Models.Servers;
 using GmlCore.Interfaces.Launcher;
 using GmlCore.Interfaces.Procedures;
 using GmlCore.Interfaces.Servers;
-using Pingo;
-using Pingo.Status;
 
 namespace Gml.Core.Helpers.Profiles;
 
 public partial class ProfileProcedures : IProfileServersProcedures
 {
+    private static readonly TimeSpan ServerPingTimeout = TimeSpan.FromSeconds(5);
+
     public async Task<IProfileServer> AddMinecraftServer(IGameProfile profile, string serverName, string address,
         int port)
     {
@@ -46,18 +47,13 @@ public partial class ProfileProcedures : IProfileServersProcedures
         if (server is MinecraftServer minecraftServer)
             try
             {
-                var options = new MinecraftPingOptions
-                {
-                    Address = minecraftServer.Address,
-                    Port = (ushort)minecraftServer.Port
-                };
+                var status = await JavaServerPinger.PingAsync(minecraftServer.Address, minecraftServer.Port,
+                    ServerPingTimeout);
 
-                var status = await Minecraft.PingAsync(options) as JavaStatus;
-
-                minecraftServer.Online = status?.OnlinePlayers;
-                minecraftServer.MaxOnline = status?.MaximumPlayers;
-                minecraftServer.Version = status?.Name ?? string.Empty;
-                minecraftServer.IsOnline = status?.MaximumPlayers is not null;
+                minecraftServer.Online = status.OnlinePlayers;
+                minecraftServer.MaxOnline = status.MaximumPlayers;
+                minecraftServer.Version = status.VersionName;
+                minecraftServer.IsOnline = true;
             }
             catch (Exception exception)
             {
