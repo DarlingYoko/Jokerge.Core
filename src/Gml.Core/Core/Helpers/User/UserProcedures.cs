@@ -42,14 +42,24 @@ public class UserProcedures : IUserProcedures
         string? hwid,
         bool isSlim)
     {
-        var authUser = await _storage.GetUserAsync<AuthUser>(login, new JsonSerializerOptions
+        var serializerOptions = new JsonSerializerOptions
         {
             Converters = { new SessionConverter() }
-        }) ?? new AuthUser
-        {
-            Name = login
         };
 
+        // Rows are keyed by login, but the game identifies players by UUID. A player who renamed
+        // themselves on the auth site comes back under a new login with the same UUID; their
+        // record moves to the new login instead of being duplicated, or lookups by UUID would keep
+        // finding the old row with a stale access token.
+        var hasStableUuid = HasStableUuid(customUuid);
+
+        var authUser = await _storage.GetUserAsync<AuthUser>(login, serializerOptions)
+                       ?? (hasStableUuid
+                           ? await _storage.GetUserByUuidAsync<AuthUser>(customUuid!, serializerOptions)
+                           : null)
+                       ?? new AuthUser();
+
+        authUser.Name = login;
         authUser.AuthHistory.Add(AuthUserHistory.Create(device, protocol, hwid, address?.ToString()));
         authUser.Uuid = customUuid ?? UsernameToUuid(login);
         authUser.ExpiredDate = DateTime.Now + TimeSpan.FromDays(30);
@@ -58,7 +68,28 @@ public class UserProcedures : IUserProcedures
 
         await _storage.SetUserAsync(login, authUser.Uuid, authUser);
 
+        if (hasStableUuid)
+        {
+            var staleUsers =
+                await _storage.RemoveOtherUsersWithUuidAsync<AuthUser>(authUser.Uuid, login, serializerOptions);
+
+            // A ban on the old name must survive the rename.
+            if (staleUsers.Any(u => u.IsBanned) && !authUser.IsBanned)
+            {
+                authUser.IsBanned = true;
+                authUser.IsBannedPermanent = staleUsers.Any(u => u.IsBannedPermanent);
+                await _storage.SetUserAsync(login, authUser.Uuid, authUser);
+            }
+        }
+
         return authUser;
+    }
+
+    // An integration that reports an empty UUID would otherwise merge every player into one record.
+    private static bool HasStableUuid(string? uuid)
+    {
+        return !string.IsNullOrWhiteSpace(uuid)
+               && !(Guid.TryParse(uuid, out var parsed) && parsed == Guid.Empty);
     }
 
     public async Task<IUser?> GetUserByUuid(string uuid)

@@ -169,6 +169,17 @@ public interface IStorageService
     Task RemoveUserByUuidAsync(string userUuid);
 
     /// <summary>
+    ///     Removes every user stored under <paramref name="uuid" /> except the one stored under
+    ///     <paramref name="login" />.
+    /// </summary>
+    /// <param name="uuid">The UUID shared by the rows.</param>
+    /// <param name="login">The login of the row to keep.</param>
+    /// <param name="jsonSerializerOptions">The options to use for JSON deserialization.</param>
+    /// <returns>The removed users.</returns>
+    Task<IReadOnlyCollection<T>> RemoveOtherUsersWithUuidAsync<T>(string uuid, string login,
+        JsonSerializerOptions jsonSerializerOptions);
+
+    /// <summary>
     ///     Adds a locked hardware identifier (HWID) to the local storage asynchronously.
     /// </summary>
     /// <param name="hardware">The hardware information, including identifiers to be locked.</param>

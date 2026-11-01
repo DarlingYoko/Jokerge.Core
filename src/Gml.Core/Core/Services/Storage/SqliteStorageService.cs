@@ -228,6 +228,22 @@ public class SqliteStorageService : IStorageService
         if (user != null) await _database.DeleteAsync(user);
     }
 
+    public async Task<IReadOnlyCollection<T>> RemoveOtherUsersWithUuidAsync<T>(string uuid, string login,
+        JsonSerializerOptions jsonSerializerOptions)
+    {
+        var lowerUuid = uuid.ToLower();
+
+        var storageItems = await _database.Table<UserStorageItem>()
+            .Where(si => si.Uuid.ToLower() == lowerUuid && si.Login != login)
+            .ToListAsync();
+
+        foreach (var storageItem in storageItems) await _database.DeleteAsync(storageItem);
+
+        return storageItems
+            .Select(si => JsonSerializer.Deserialize<T>(si.Value, jsonSerializerOptions)!)
+            .ToList();
+    }
+
     public async Task AddLockedHwid(IHardware hardware)
     {
         var exists = await _database.Table<BannedHardwareItem>()

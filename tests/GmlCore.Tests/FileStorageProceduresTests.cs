@@ -337,6 +337,12 @@ public class FileStorageProceduresTests
             throw new NotImplementedException();
         }
 
+        public Task<IReadOnlyCollection<T>> RemoveOtherUsersWithUuidAsync<T>(string uuid, string login,
+            JsonSerializerOptions jsonSerializerOptions)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task AddLockedHwid(IHardware hardware)
         {
             throw new NotImplementedException();
