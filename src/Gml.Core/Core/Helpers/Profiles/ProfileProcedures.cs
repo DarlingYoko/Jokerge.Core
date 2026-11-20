@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reactive.Subjects;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using CmlLib.Core;
 using CmlLib.Core.Installer.Forge;
@@ -57,6 +58,8 @@ public partial class ProfileProcedures : IProfileProcedures
 
     private readonly ISubject<double> _packChanged = new Subject<double>();
     private readonly ISubject<int> _profilesChanged = new Subject<int>();
+    private readonly SemaphoreSlim _restoreLock = new(1, 1);
+    private volatile bool _profilesRestored;
     private readonly ConcurrentDictionary<string, IEnumerable<string>> _quiltVersions = new();
     private readonly IStorageService _storageService;
     private List<IGameProfile> _gameProfiles = new();
@@ -196,25 +199,44 @@ public partial class ProfileProcedures : IProfileProcedures
 
     public async Task RestoreProfiles()
     {
-        var profiles = await _storageService.GetAsync<List<GameProfile>>(StorageConstants.GameProfiles,
-            new JsonSerializerOptions
-            {
-                Converters =
-                {
-                    new LocalFileInfoConverter(),
-                    new LocalFolderInfoConverter()
-                }
-            });
+        // In-memory profiles are the source of truth once loaded (every change goes through
+        // SaveProfiles). Reading and deserializing the stored JSON on every GetProfile/GetProfiles
+        // call only to discard it made each profile request cost a full reload.
+        if (_profilesRestored)
+            return;
 
-        if (profiles != null && !_gameProfiles.Any())
+        await _restoreLock.WaitAsync().ConfigureAwait(false);
+        try
         {
-            _gameProfiles = [..profiles];
+            if (_profilesRestored)
+                return;
 
-            profiles = profiles.Where(c => c != null).ToList();
+            var profiles = await _storageService.GetAsync<List<GameProfile>>(StorageConstants.GameProfiles,
+                new JsonSerializerOptions
+                {
+                    Converters =
+                    {
+                        new LocalFileInfoConverter(),
+                        new LocalFolderInfoConverter()
+                    }
+                });
 
-            Parallel.ForEach(profiles, RestoreProfile);
+            if (profiles != null && !_gameProfiles.Any())
+            {
+                _gameProfiles = [..profiles];
 
-            _gameProfiles = [..profiles];
+                profiles = profiles.Where(c => c != null).ToList();
+
+                Parallel.ForEach(profiles, RestoreProfile);
+
+                _gameProfiles = [..profiles];
+            }
+
+            _profilesRestored = true;
+        }
+        finally
+        {
+            _restoreLock.Release();
         }
     }
 
