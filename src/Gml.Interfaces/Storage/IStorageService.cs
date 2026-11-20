@@ -162,6 +162,17 @@ public interface IStorageService
     Task<IEnumerable<IBugInfo>> GetFilteredBugsAsync(Expression<Func<IStorageBug, bool>> filter);
 
     /// <summary>
+    ///     Removes the bug reports with the given ids.
+    /// </summary>
+    /// <returns>How many reports were removed.</returns>
+    Task<int> RemoveBugsAsync(IEnumerable<Guid> ids);
+
+    /// <summary>
+    ///     Counts all stored bug reports without loading them.
+    /// </summary>
+    Task<int> CountBugsAsync();
+
+    /// <summary>
     ///     Removes a user from the storage asynchronously using their UUID.
     /// </summary>
     /// <param name="userUuid">The UUID of the user to remove.</param>

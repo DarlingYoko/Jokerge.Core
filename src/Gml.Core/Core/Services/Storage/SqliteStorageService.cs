@@ -198,7 +198,25 @@ public class SqliteStorageService : IStorageService
             .Table<BugItem>()
             .FirstOrDefaultAsync(c => c.Guid == id);
 
-        return JsonConvert.DeserializeObject<BugInfo>(bug.Value, _bugsConverter);
+        return bug is null ? null : JsonConvert.DeserializeObject<BugInfo>(bug.Value, _bugsConverter);
+    }
+
+    public async Task<int> RemoveBugsAsync(IEnumerable<Guid> ids)
+    {
+        var removed = 0;
+
+        foreach (var chunk in ids.Distinct().Chunk(500))
+        {
+            var list = chunk.ToList();
+            removed += await _database.Table<BugItem>().DeleteAsync(c => list.Contains(c.Guid));
+        }
+
+        return removed;
+    }
+
+    public Task<int> CountBugsAsync()
+    {
+        return _database.Table<BugItem>().CountAsync();
     }
 
     public async Task<IEnumerable<IBugInfo>> GetFilteredBugsAsync(Expression<Func<IStorageBug, bool>> filter)

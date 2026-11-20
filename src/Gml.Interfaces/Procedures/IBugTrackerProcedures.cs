@@ -15,4 +15,6 @@ public interface IBugTrackerProcedures
     Task<IBugInfo?> GetBugId(Guid id);
     Task<IEnumerable<IBugInfo>> GetFilteredBugs(Expression<Func<IStorageBug, bool>> filter);
     Task SolveAllAsync();
+    Task<int> RemoveBugsAsync(IEnumerable<Guid> ids);
+    Task<int> CountBugsAsync();
 }

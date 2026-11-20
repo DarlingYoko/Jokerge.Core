@@ -332,6 +332,10 @@ public class FileStorageProceduresTests
             throw new NotImplementedException();
         }
 
+        public Task<int> RemoveBugsAsync(IEnumerable<Guid> ids) => Task.FromResult(0);
+
+        public Task<int> CountBugsAsync() => Task.FromResult(0);
+
         public Task RemoveUserByUuidAsync(string userUuid)
         {
             throw new NotImplementedException();
@@ -475,5 +479,9 @@ public class FileStorageProceduresTests
         {
             return Task.CompletedTask;
         }
+
+        public Task<int> RemoveBugsAsync(IEnumerable<Guid> ids) => Task.FromResult(0);
+
+        public Task<int> CountBugsAsync() => Task.FromResult(0);
     }
 }

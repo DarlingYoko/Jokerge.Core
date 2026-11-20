@@ -77,7 +77,7 @@ public class BugTrackerProcedures : FileStorageService, IBugTrackerProcedures
                     {
                         new StackTrace
                         {
-                            Function = exception.StackTrace
+                            Function = exception.ToString()
                         }
                     }
                 }
@@ -108,6 +108,16 @@ public class BugTrackerProcedures : FileStorageService, IBugTrackerProcedures
     public Task SolveAllAsync()
     {
         return _storage.ClearBugsAsync();
+    }
+
+    public Task<int> RemoveBugsAsync(IEnumerable<Guid> ids)
+    {
+        return _storage.RemoveBugsAsync(ids);
+    }
+
+    public Task<int> CountBugsAsync()
+    {
+        return _storage.CountBugsAsync();
     }
 
     public void UpdateClearTimer(IStorageSettings newSettings)
