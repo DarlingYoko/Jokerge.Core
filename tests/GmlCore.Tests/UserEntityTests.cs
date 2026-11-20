@@ -192,6 +192,7 @@ public class UserEntityTests
         public ILauncherProcedures Launcher => throw new NotImplementedException();
         public IProfileServersProcedures Servers => throw new NotImplementedException();
         public INotificationProcedures Notifications => throw new NotImplementedException();
+        public IPanelNewsProcedures News => throw new NotImplementedException();
         public IModsProcedures Mods => throw new NotImplementedException();
         public IStorageService Storage => throw new NotImplementedException();
 

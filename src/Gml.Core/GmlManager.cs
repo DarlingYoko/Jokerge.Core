@@ -10,6 +10,7 @@ using Gml.Core.Helpers.Profiles;
 using Gml.Core.Helpers.User;
 using Gml.Core.Integrations;
 using Gml.Core.Launcher;
+using Gml.Core.News;
 using Gml.Core.Services.Storage;
 using GmlCore.Interfaces;
 using GmlCore.Interfaces.Integrations;
@@ -36,6 +37,7 @@ public class GmlManager : IGmlManager
         Integrations = new ServicesIntegrationProcedures(settings, Storage, BugTracker, this);
         Users = new UserProcedures(settings, Storage, this);
         Launcher = new LauncherProcedures(LauncherInfo, Storage, Files, this);
+        News = new PanelNewsProcedures(settings);
         Servers = (IProfileServersProcedures)Profiles;
     }
 
@@ -52,6 +54,7 @@ public class GmlManager : IGmlManager
     public IModsProcedures Mods { get; }
     public ILauncherProcedures Launcher { get; }
     public INotificationProcedures Notifications { get; }
+    public IPanelNewsProcedures News { get; }
 
     public void RestoreSettings<T>() where T : IVersionFile
     {

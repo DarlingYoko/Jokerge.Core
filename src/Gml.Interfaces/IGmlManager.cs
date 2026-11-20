@@ -16,6 +16,7 @@ public interface IGmlManager
     public ILauncherProcedures Launcher { get; }
     IProfileServersProcedures Servers { get; }
     INotificationProcedures Notifications { get; }
+    IPanelNewsProcedures News { get; }
     IModsProcedures Mods { get; }
     IStorageService Storage { get; }
     void RestoreSettings<T>() where T : IVersionFile;
