@@ -17,5 +17,6 @@ public class BugInfo : IBugInfo
     public string? OsVersion { get; set; }
     public string? OsIdentifier { get; set; }
     public string? Release { get; set; }
+    public string? Player { get; set; }
     public ProjectType ProjectType { get; set; }
 }

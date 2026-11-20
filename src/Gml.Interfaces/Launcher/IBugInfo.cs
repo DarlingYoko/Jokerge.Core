@@ -18,5 +18,8 @@ public interface IBugInfo
 
     /// <summary>Sentry release of the reporting app (launcher build), when it sent one.</summary>
     public string? Release { get; set; }
+
+    /// <summary>Minecraft nickname of the signed-in player (Sentry tag <c>player</c>), when known.</summary>
+    public string? Player { get; set; }
     ProjectType ProjectType { get; set; }
 }

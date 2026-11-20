@@ -274,6 +274,9 @@ public class SentryModulesDto
 
     [JsonProperty("user")] public User User { get; set; }
 
+    /// <summary>Event tags, e.g. <c>"player"</c> set by the launcher once a player signs in.</summary>
+    [JsonProperty("tags")] public Dictionary<string, string>? Tags { get; set; }
+
     [JsonProperty("environment")] public string Environment { get; set; }
 
     [JsonProperty("sdk")] public Sdk Sdk { get; set; }
