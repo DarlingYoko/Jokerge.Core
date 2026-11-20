@@ -107,9 +107,19 @@ public class TextureProvider(
         return _httpClintSkinChecker.GetStreamAsync(textureUrl);
     }
 
-    public Task<Stream> GetHeadByNameStream(string? userName)
+    /// <returns>The head image, or null when the service rejects or does not know the name.</returns>
+    public async Task<Stream?> GetHeadByNameStream(string? userName)
     {
-        return _httpClientLoader.GetStreamAsync($"/skin/{userName}/head/128");
+        var requestUri = $"/skin/{userName}/head/128";
+        using var response = await _httpClientLoader.GetAsync(requestUri);
+
+        // Same as GetUserTexture: a name the service cannot store has no head, which is not a bug.
+        if (response.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.NotFound)
+            return null;
+
+        await EnsureSuccessAsync(response, $"GET {requestUri}");
+
+        return new MemoryStream(await response.Content.ReadAsByteArrayAsync());
     }
 
     public async Task<(string? SkinUrl, bool HasSkin, string? CloakUrl, bool HasCloak)> GetUserTexture(string userName)
@@ -172,11 +182,16 @@ public class TextureProvider(
     /// </summary>
     private static async Task<string> ReadSuccessAsync(HttpResponseMessage response, string operation)
     {
-        var body = await response.Content.ReadAsStringAsync();
+        await EnsureSuccessAsync(response, operation);
+        return await response.Content.ReadAsStringAsync();
+    }
 
+    private static async Task EnsureSuccessAsync(HttpResponseMessage response, string operation)
+    {
         if (response.IsSuccessStatusCode)
-            return body;
+            return;
 
+        var body = await response.Content.ReadAsStringAsync();
         var reason = body.Trim().Trim('"');
         if (reason.Length > 500)
             reason = reason[..500];

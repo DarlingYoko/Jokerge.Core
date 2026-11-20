@@ -249,7 +249,7 @@ public class UserProcedures : IUserProcedures
         return _gmlManager.Integrations.TextureProvider.GetCloakStream(user.TextureCloakUrl);
     }
 
-    public Task<Stream> GetHead(IUser user)
+    public Task<Stream?> GetHead(IUser user)
     {
         return _gmlManager.Integrations.TextureProvider.GetHeadByNameStream(user.Name);
     }

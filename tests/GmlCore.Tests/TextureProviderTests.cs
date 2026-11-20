@@ -72,6 +72,41 @@ public class TextureProviderTests
         });
     }
 
+    [Test]
+    public async Task GetHead_ServiceFails_ReportsStatusAndBody()
+    {
+        var (provider, _) = Create(_ => Reply(HttpStatusCode.InternalServerError, "being used by another process"));
+
+        var exception = Assert.ThrowsAsync<HttpRequestException>(() => provider.GetHeadByNameStream("Darling_Yoko"));
+
+        Assert.That(exception!.Message,
+            Does.Contain("500").And.Contain("being used by another process").And.Contain("Darling_Yoko"));
+        await Task.CompletedTask;
+    }
+
+    [Test]
+    public async Task GetHead_NameTheServiceRejects_ReturnsNoHead()
+    {
+        var (provider, _) = Create(_ => Reply(HttpStatusCode.BadRequest, "Invalid username."));
+
+        var head = await provider.GetHeadByNameStream("Игрок");
+
+        Assert.That(head, Is.Null);
+    }
+
+    [Test]
+    public async Task GetHead_ReturnsImageBytes()
+    {
+        var (provider, _) = Create(_ =>
+            new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent([137, 80, 78, 71]) });
+
+        await using var head = await provider.GetHeadByNameStream("Darling_Yoko");
+        using var copy = new MemoryStream();
+        await head!.CopyToAsync(copy);
+
+        Assert.That(copy.ToArray(), Is.EqualTo(new byte[] { 137, 80, 78, 71 }));
+    }
+
     private sealed class StubHandler(Func<HttpRequestMessage, HttpResponseMessage> respond) : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,

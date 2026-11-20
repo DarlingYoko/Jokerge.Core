@@ -12,7 +12,7 @@ public interface ITextureProvider
     Task DeleteCloak(string userName);
     Task<Stream> GetSkinStream(string? textureUrl);
     Task<Stream> GetCloakStream(string? userTextureSkinUrl);
-    Task<Stream> GetHeadByNameStream(string? userName);
+    Task<Stream?> GetHeadByNameStream(string? userName);
 
     /// <summary>
     /// Looks up a player's current texture info without uploading anything — Skin.Service
