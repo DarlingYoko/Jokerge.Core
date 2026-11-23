@@ -31,6 +31,8 @@ public class ServerStatusConnectionTests
             Assert.That(server.Online, Is.EqualTo(3));
             Assert.That(server.MaxOnline, Is.EqualTo(20));
             Assert.That(server.Version, Is.EqualTo("1.20.1"));
+            Assert.That(server.Ping, Is.Not.Null.And.GreaterThanOrEqualTo(0),
+                "the panel shows how fast each entry point answers");
         });
         Assert.That(await fake.WaitForClientCloseAsync(CloseWait), Is.True,
             "the ping must close its connection instead of leaving it to the server's read timeout");
@@ -43,7 +45,8 @@ public class ServerStatusConnectionTests
         ProfileProcedures procedures = new(null!, null!, null!, null!, null!);
         MinecraftServer server = new()
         {
-            Name = "Waffle", Address = "127.0.0.1", Port = port, IsOnline = true, Online = 5, MaxOnline = 20
+            Name = "Waffle", Address = "127.0.0.1", Port = port, IsOnline = true, Online = 5, MaxOnline = 20,
+            Ping = 40
         };
 
         await procedures.UpdateServerState(server);
@@ -53,6 +56,7 @@ public class ServerStatusConnectionTests
             Assert.That(server.IsOnline, Is.False);
             Assert.That(server.Online, Is.Null);
             Assert.That(server.MaxOnline, Is.Null);
+            Assert.That(server.Ping, Is.Null, "an unreachable entry has no ping");
         });
     }
 
@@ -74,7 +78,9 @@ public class ServerStatusConnectionTests
 
         JavaServerStatus status = await JavaServerPinger.PingAsync("127.0.0.1", fake.Port, TimeSpan.FromSeconds(5));
 
-        Assert.That(status, Is.EqualTo(new JavaServerStatus("1.20.1", 3, 20)));
+        Assert.That((status.VersionName, status.OnlinePlayers, status.MaximumPlayers),
+            Is.EqualTo(("1.20.1", 3, 20)));
+        Assert.That(status.Latency, Is.GreaterThanOrEqualTo(TimeSpan.Zero));
     }
 
     private static int FreePort()

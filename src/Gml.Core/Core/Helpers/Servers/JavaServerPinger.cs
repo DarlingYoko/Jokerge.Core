@@ -1,6 +1,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
@@ -10,7 +11,8 @@ using System.Threading.Tasks;
 
 namespace Gml.Core.Helpers.Servers;
 
-public sealed record JavaServerStatus(string VersionName, int OnlinePlayers, int MaximumPlayers);
+/// <param name="Latency">Time from sending the status request to receiving the response: about one round trip.</param>
+public sealed record JavaServerStatus(string VersionName, int OnlinePlayers, int MaximumPlayers, TimeSpan Latency);
 
 /// <summary>
 ///     Minecraft Java Edition server list ping (handshake + status request). The connection is always closed
@@ -36,10 +38,13 @@ public static class JavaServerPinger
         NetworkStream stream = client.GetStream();
 
         await stream.WriteAsync(Frame(Handshake(address, port)), token);
+        // Timed from the status request only: connecting and DNS would roughly double the number.
+        long started = Stopwatch.GetTimestamp();
         await stream.WriteAsync(Frame([0x00]), token);
 
         byte[] payload = await ReadFrameAsync(stream, token);
-        return ParseStatusResponse(payload);
+        TimeSpan latency = Stopwatch.GetElapsedTime(started);
+        return ParseStatusResponse(payload, latency);
     }
 
     private static byte[] Handshake(string address, int port)
@@ -96,7 +101,7 @@ public static class JavaServerPinger
         return payload;
     }
 
-    private static JavaServerStatus ParseStatusResponse(byte[] payload)
+    private static JavaServerStatus ParseStatusResponse(byte[] payload, TimeSpan latency)
     {
         int offset = 0;
         int packetId = ReadVarInt(payload, ref offset);
@@ -122,7 +127,7 @@ public static class JavaServerPinger
             if (players.TryGetProperty("max", out JsonElement maxElement)) maximum = maxElement.GetInt32();
         }
 
-        return new JavaServerStatus(versionName, online, maximum);
+        return new JavaServerStatus(versionName, online, maximum, latency);
     }
 
     private static int ReadVarInt(byte[] buffer, ref int offset)

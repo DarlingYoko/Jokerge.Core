@@ -14,6 +14,9 @@ public class MinecraftServer : IProfileServer
     public int? Online { get; set; }
     public int? MaxOnline { get; set; }
 
+    /// <summary>Status request round trip from the API host, in ms; null while offline or not checked yet.</summary>
+    public int? Ping { get; set; }
+
     public string Name { get; set; }
     public string Address { get; set; }
     public int Port { get; set; }

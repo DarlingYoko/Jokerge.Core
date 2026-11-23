@@ -53,12 +53,14 @@ public partial class ProfileProcedures : IProfileServersProcedures
                 minecraftServer.Online = status.OnlinePlayers;
                 minecraftServer.MaxOnline = status.MaximumPlayers;
                 minecraftServer.Version = status.VersionName;
+                minecraftServer.Ping = (int)Math.Round(status.Latency.TotalMilliseconds);
                 minecraftServer.IsOnline = true;
             }
             catch (Exception exception)
             {
                 minecraftServer.Online = null;
                 minecraftServer.MaxOnline = null;
+                minecraftServer.Ping = null;
                 minecraftServer.IsOnline = false;
                 Console.WriteLine(exception);
             }
