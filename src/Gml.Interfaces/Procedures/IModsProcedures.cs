@@ -22,6 +22,9 @@ public interface IModsProcedures
         short take,
         short offset);
 
-    Task SetModDetails(string modName, string title, string description);
+    /// <param name="dependencies">Keys of the optional mods this one needs; <c>null</c> keeps the saved list.</param>
+    /// <exception cref="ModDependencyCycleException">The mod would end up needing itself.</exception>
+    Task SetModDetails(string modName, string title, string description,
+        IReadOnlyCollection<string>? dependencies = null);
     Task Retore();
 }

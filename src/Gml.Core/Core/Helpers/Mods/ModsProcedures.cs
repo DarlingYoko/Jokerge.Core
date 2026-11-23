@@ -108,19 +108,37 @@ public class ModsProcedures : IModsProcedures
         }
     }
 
-    public Task SetModDetails(string modName, string title, string description)
+    public Task SetModDetails(string modName, string title, string description,
+        IReadOnlyCollection<string>? dependencies = null)
     {
+        // null keeps the saved list: older panels send only the title and description.
+        var newDependencies = dependencies is null ? null : ModDependencies.Normalize(modName, dependencies);
+
+        if (newDependencies is not null)
+        {
+            var stored = _modsInfo.ToDictionary(
+                pair => pair.Key,
+                pair => (IReadOnlyCollection<string>)(pair.Value.Dependencies ?? []));
+
+            if (ModDependencies.FindCycle(stored, modName, newDependencies) is { } cycle)
+                throw new ModDependencyCycleException(cycle);
+        }
+
         _modsInfo.AddOrUpdate(modName,
             _ => new ModInfo
             {
                 Key = modName,
                 Title = title,
-                Description = description
+                Description = description,
+                Dependencies = newDependencies?.ToList() ?? []
             },
             (_, existing) =>
             {
                 existing.Title = title;
                 existing.Description = description;
+                if (newDependencies is not null)
+                    existing.Dependencies = newDependencies.ToList();
+                existing.Dependencies ??= [];
                 return existing;
             });
 
